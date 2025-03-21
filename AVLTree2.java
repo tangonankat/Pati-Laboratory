@@ -64,28 +64,12 @@ class AVLTree {
         } else if (value > node.value) {
             node.right = insertRec(node.right, value);
         } else {
-            return node;
+            return node; // Duplicate values are not allowed
         }
 
+        // Update height and balance the tree
         node.height = 1 + Math.max(height(node.left), height(node.right));
-        int balance = getBalance(node);
-
-        if (balance > 1 && value < node.left.value) {
-            return rightRotate(node);
-        }
-        if (balance < -1 && value > node.right.value) {
-            return leftRotate(node);
-        }
-        if (balance > 1 && value > node.left.value) {
-            node.left = leftRotate(node.left);
-            return rightRotate(node);
-        }
-        if (balance < -1 && value < node.right.value) {
-            node.right = rightRotate(node.right);
-            return leftRotate(node);
-        }
-
-        return node;
+        return balance(node);
     }
 
     void delete(int value) {
@@ -109,39 +93,57 @@ class AVLTree {
                     root = temp;
                 }
             } else {
-                TreeNode temp = minValueNode(root.right);
-                root.value = temp.value;
-                root.right = deleteRec(root.right, temp.value);
+                // Replace with the inorder predecessor (max value in the left subtree)
+                TreeNode maxValLeft = findMax(root.left);
+                root.value = maxValLeft.value;
+                root.left = deleteRec(root.left, maxValLeft.value);
             }
         }
 
         if (root == null) return root;
 
+        // Update height and balance the tree
         root.height = 1 + Math.max(height(root.left), height(root.right));
-        int balance = getBalance(root);
-
-        if (balance > 1 && getBalance(root.left) >= 0) {
-            return rightRotate(root);
-        }
-        if (balance > 1 && getBalance(root.left) < 0) {
-            root.left = leftRotate(root.left);
-            return rightRotate(root);
-        }
-        if (balance < -1 && getBalance(root.right) <= 0) {
-            return leftRotate(root);
-        }
-        if (balance < -1 && getBalance(root.right) > 0) {
-            root.right = rightRotate(root.right);
-            return leftRotate(root);
-        }
-
-        return root;
+        return balance(root);
     }
 
-    TreeNode minValueNode(TreeNode node) {
-        TreeNode current = node;
-        while (current.left != null) current = current.left;
-        return current;
+    // Find the node with the maximum value in a subtree
+    TreeNode findMax(TreeNode node) {
+        while (node.right != null) {
+            node = node.right;
+        }
+        return node;
+    }
+
+    // Balance the tree
+    TreeNode balance(TreeNode node) {
+        int balanceFactor = getBalance(node);
+
+        // Left-heavy
+        if (balanceFactor > 1) {
+            if (getBalance(node.left) >= 0) {
+                // Left-Left case
+                return rightRotate(node);
+            } else {
+                // Left-Right case
+                node.left = leftRotate(node.left);
+                return rightRotate(node);
+            }
+        }
+
+        // Right-heavy
+        if (balanceFactor < -1) {
+            if (getBalance(node.right) <= 0) {
+                // Right-Right case
+                return leftRotate(node);
+            } else {
+                // Right-Left case
+                node.right = rightRotate(node.right);
+                return leftRotate(node);
+            }
+        }
+
+        return node;
     }
 
     void fillArray(TreeNode node, int[] array, int index) {
@@ -207,7 +209,7 @@ class AVLTree {
     }
 }
 
-public class AVLTree2 {
+public class DeepseekTest2 {
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
         AVLTree avl = new AVLTree();
