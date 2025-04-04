@@ -1,0 +1,122 @@
+import java.util.*;
+
+class Edge implements Comparable<Edge> {
+    char src, dest;
+    int weight;
+
+    public Edge(char src, char dest, int weight) {
+        this.src = src;
+        this.dest = dest;
+        this.weight = weight;
+    }
+
+    @Override
+    public int compareTo(Edge compareEdge) {
+        return this.weight - compareEdge.weight;
+    }
+
+    @Override
+    public String toString() {
+        return "(" + src + "," + dest + "," + weight + ")";
+    }
+}
+
+class DisjointSet {
+    Map<Character, Character> parent = new HashMap<>();
+
+    public void makeSet(Set<Character> vertices) {
+        for (char v : vertices) {
+            parent.put(v, v);
+        }
+    }
+
+    public char find(char v) {
+        if (parent.get(v) != v) {
+            parent.put(v, find(parent.get(v))); // Path compression
+        }
+        return parent.get(v);
+    }
+
+    public void union(char u, char v) {
+        char root1 = find(u);
+        char root2 = find(v);
+        if (root1 != root2) {
+            parent.put(root1, root2);
+        }
+    }
+}
+
+public class KruskalAlgorithm {
+    static Scanner sc = new Scanner(System.in);
+
+    public static void main(String[] args) {
+        do {
+            List<Edge> edges = new ArrayList<>();
+            Set<Character> vertices = new HashSet<>();
+
+            System.out.print("Enter number of edges: ");
+            int n = sc.nextInt();
+            System.out.println("Enter edges in the format <from> <to> <weight> (e.g. A B 5):");
+            for (int i = 0; i < n; i++) {
+                char u = sc.next().toUpperCase().charAt(0);
+                char v = sc.next().toUpperCase().charAt(0);
+                int w = sc.nextInt();
+                edges.add(new Edge(u, v, w));
+                vertices.add(u);
+                vertices.add(v);
+            }
+
+            // Display adjacency matrix
+            List<Character> vList = new ArrayList<>(vertices);
+            Collections.sort(vList);
+            int size = vList.size();
+            int[][] adjMatrix = new int[size][size];
+
+            for (Edge e : edges) {
+                int i = vList.indexOf(e.src);
+                int j = vList.indexOf(e.dest);
+                adjMatrix[i][j] = e.weight;
+                adjMatrix[j][i] = e.weight; // undirected graph
+            }
+
+            System.out.println("\nAdjacency Matrix:");
+            System.out.print("  ");
+            for (char ch : vList) System.out.print(ch + " ");
+            System.out.println();
+            for (int i = 0; i < size; i++) {
+                System.out.print(vList.get(i) + " ");
+                for (int j = 0; j < size; j++) {
+                    System.out.print((adjMatrix[i][j] == 0 ? "-" : adjMatrix[i][j]) + " ");
+                }
+                System.out.println();
+            }
+
+            // Kruskal’s Algorithm
+            Collections.sort(edges);
+            DisjointSet ds = new DisjointSet();
+            ds.makeSet(vertices);
+
+            List<Edge> result = new ArrayList<>();
+            int minCost = 0;
+
+            for (Edge e : edges) {
+                if (ds.find(e.src) != ds.find(e.dest)) {
+                    result.add(e);
+                    minCost += e.weight;
+                    ds.union(e.src, e.dest);
+                }
+            }
+
+            System.out.println("\nMinimum Cost Spanning Tree Edges:");
+            for (Edge e : result) {
+                System.out.println(e);
+            }
+
+            System.out.println("Total Minimum Cost: " + minCost);
+
+            System.out.print("\nTry again? (yes/no): ");
+        } while (sc.next().equalsIgnoreCase("yes"));
+
+        sc.close();
+    }
+}
